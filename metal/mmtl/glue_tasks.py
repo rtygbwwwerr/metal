@@ -58,6 +58,14 @@ task_defaults = {
         "attention_module": None,  # None, soft currently accepted
         "nonlinearity": "tanh",  # tanh, sigmoid currently accepted
     },
+    # Auxiliary task dict -- set here for now
+    "auxiliary_tasks" : {
+        "STSB": ["BLEU"],
+        "MRPC": ["BLEU"],
+        "MRPC_SAN": ["BLEU"],
+        "QQP": ["BLEU"],
+        "QQP_SAN": ["BLEU"],
+    }
 }
 
 
@@ -131,27 +139,30 @@ def create_tasks_and_payloads(task_names, **kwargs):
     )
 
     # Creating unified list of task names
-    task_names = list(set(task_names + auxiliary_task_names))
+    
+    all_task_names = list(set(task_names + auxiliary_task_names))
 
-    for task_name in task_names:
+    for task_name in all_task_names:
 
         # Override general dl kwargs with task-specific kwargs
         dl_kwargs = copy.deepcopy(config["dl_kwargs"])
         if task_name in task_dl_kwargs:
             dl_kwargs.update(task_dl_kwargs[task_name])
 
-        # create data loaders for task
-        data_loaders = get_all_dataloaders(
-            task_name if not task_name.endswith("_SAN") else task_name[:-4],
-            config["bert_model"],
-            max_len=config["max_len"],
-            dl_kwargs=dl_kwargs,
-            split_prop=config["split_prop"],
-            max_datapoints=config["max_datapoints"],
-            splits=config["splits"],
-            seed=config["seed"],
-            generate_uids=kwargs.get("generate_uids", False),
-        )
+        
+        if task_name in task_names:
+            # create data loaders for task
+            data_loaders = get_all_dataloaders(
+                task_name if not task_name.endswith("_SAN") else task_name[:-4],
+                config["bert_model"],
+                max_len=config["max_len"],
+                dl_kwargs=dl_kwargs,
+                split_prop=config["split_prop"],
+                max_datapoints=config["max_datapoints"],
+                splits=config["splits"],
+                seed=config["seed"],
+                generate_uids=kwargs.get("generate_uids", False),
+            )
 
         if task_name == "COLA":
             scorer = Scorer(
@@ -273,19 +284,22 @@ def create_tasks_and_payloads(task_names, **kwargs):
 
         # Append task to task list
         task_list.append(task)
+        
+        if task_name in task_names:
 
-        # Create payloads and adding label sets
-        for split, data_loader in data_loaders.items():
-            payload_name = f"{task_name}_{split}"
-            payload = Payload(payload_name, data_loader, [task_name], split)
+            # Create payloads and adding label sets
+            for split, data_loader in data_loaders.items():
+                payload_name = f"{task_name}_{split}"
+                payload = Payload(payload_name, data_loader, [task_name], split)
 
-            # Add auxiliary task labels to payloads
-            if task_name in auxiliary_tasks.keys():
-                if "BLEU" in auxiliary_tasks[task_name]:
-                    add_bleu_labels(payload)
+                # Add auxiliary task labels to payloads
+                if task_name in auxiliary_tasks.keys():
+                    if "BLEU" in auxiliary_tasks[task_name]:
+                        print(f"Adding BLEU labels to {task_name} payload")
+                        add_bleu_labels(payload)
 
-            # Add each payload to the list
-            payload_list.append(payload)
+                # Add each payload to the list
+                payload_list.append(payload)
 
     return task_list, payload_list
 

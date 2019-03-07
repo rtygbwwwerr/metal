@@ -64,7 +64,7 @@ def add_labels_to_payload(payload, task_name, label_obj):
     if isinstance(label_obj, list):
         labels_new = label_obj
     elif callable(label_obj):
-        labels_new = [label_obj(i) for i in range(len(payload.dataloader.dataset))]
+        labels_new = [label_obj(i) for i in range(len(payload.data_loader.dataset))]
     else:
         raise ValueError("Incorrect label object type -- supply list or function")
 

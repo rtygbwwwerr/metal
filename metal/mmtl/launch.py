@@ -17,15 +17,6 @@ from metal.utils import add_flags_from_config, recursive_merge_dicts
 
 logging.basicConfig(level=logging.INFO)
 
-# Auxiliary task dict -- global for now!
-AUXILIARY_TASKS = {
-    "STSB": ["BLEU"],
-    "MRPC": ["BLEU"],
-    "MRPC_SAN": ["BLEU"],
-    "QQP": ["BLEU"],
-    "QQP_SAN": ["BLEU"],
-}
-
 def get_dir_name(models_dir):
     """Gets a directory to save the model.
 
@@ -122,6 +113,7 @@ if __name__ == "__main__":
     # Getting tasks
     tasks, payloads = create_tasks_and_payloads(task_names, **task_config)
 
+    import ipdb; ipdb.set_trace()
     model_config["verbose"] = False
     model = MetalModel(tasks, **model_config)
 
