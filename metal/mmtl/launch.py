@@ -17,6 +17,14 @@ from metal.utils import add_flags_from_config, recursive_merge_dicts
 
 logging.basicConfig(level=logging.INFO)
 
+# Auxiliary task dict -- global for now!
+AUXILIARY_TASKS = {
+    "STSB": ["BLEU"],
+    "MRPC": ["BLEU"],
+    "MRPC_SAN": ["BLEU"],
+    "QQP": ["BLEU"],
+    "QQP_SAN": ["BLEU"],
+}
 
 def get_dir_name(models_dir):
     """Gets a directory to save the model.
@@ -70,6 +78,11 @@ if __name__ == "__main__":
             "Whether to override train_config dict with json loaded from path. "
             "This is used, e.g., for tuning."
         ),
+    )
+
+    # Use auxiliary tasks
+    parser.add_argument(
+        "--use_auxiliary", type=int, default=False, help="Use auxiliary tasks or not"
     )
 
     parser = add_flags_from_config(parser, trainer_defaults)
