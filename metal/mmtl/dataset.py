@@ -76,7 +76,10 @@ class GLUEDataset(data.Dataset):
 
         if tokenize_bert:
             assert bert_vocab is not None
-            bert_tokens, bert_segments = self.tokenize_bert(bert_vocab, max_len)
+            bert_tokenizer, bert_tokens, bert_segments = self.tokenize_bert(
+                bert_vocab, max_len
+            )
+            self.bert_tokenizer = bert_tokenizer
             self.bert_tokens = bert_tokens
             self.bert_segments = bert_segments
         if tokenize_spacy:
@@ -258,7 +261,7 @@ class GLUEDataset(data.Dataset):
             bert_tokens.append(token_ids)
             bert_segments.append(segments)
 
-        return bert_tokens, bert_segments
+        return tokenizer, bert_tokens, bert_segments
 
     def tokenize_spacy(self):
         pass

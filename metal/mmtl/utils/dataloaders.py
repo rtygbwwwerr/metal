@@ -68,4 +68,4 @@ def add_labels_to_payload(payload, task_name, label_obj):
     else:
         raise ValueError("Incorrect label object type -- supply list or function")
 
-    payload.labels[task_name] = labels_new
+    payload.data_loader.dataset.labels[task_name] = labels_new

@@ -59,13 +59,13 @@ task_defaults = {
         "nonlinearity": "tanh",  # tanh, sigmoid currently accepted
     },
     # Auxiliary task dict -- set here for now
-    "auxiliary_tasks" : {
+    "auxiliary_tasks": {
         "STSB": ["BLEU"],
         "MRPC": ["BLEU"],
         "MRPC_SAN": ["BLEU"],
         "QQP": ["BLEU"],
         "QQP_SAN": ["BLEU"],
-    }
+    },
 }
 
 
@@ -139,7 +139,7 @@ def create_tasks_and_payloads(task_names, **kwargs):
     )
 
     # Creating unified list of task names
-    
+
     all_task_names = list(set(task_names + auxiliary_task_names))
 
     for task_name in all_task_names:
@@ -149,7 +149,6 @@ def create_tasks_and_payloads(task_names, **kwargs):
         if task_name in task_dl_kwargs:
             dl_kwargs.update(task_dl_kwargs[task_name])
 
-        
         if task_name in task_names:
             # create data loaders for task
             data_loaders = get_all_dataloaders(
@@ -273,7 +272,7 @@ def create_tasks_and_payloads(task_names, **kwargs):
             )
 
         elif task_name == "BLEU":
-            task = ClassificationTask(
+            task = RegressionTask(
                 name=task_name,
                 input_module=input_module,
                 middle_module=cls_middle_module,
@@ -284,7 +283,7 @@ def create_tasks_and_payloads(task_names, **kwargs):
 
         # Append task to task list
         task_list.append(task)
-        
+
         if task_name in task_names:
 
             # Create payloads and adding label sets
@@ -295,7 +294,7 @@ def create_tasks_and_payloads(task_names, **kwargs):
                 # Add auxiliary task labels to payloads
                 if task_name in auxiliary_tasks.keys():
                     if "BLEU" in auxiliary_tasks[task_name]:
-                        print(f"Adding BLEU labels to {task_name} payload")
+                        print(f"Adding BLEU labels to {task_name} {split} payload")
                         add_bleu_labels(payload)
 
                 # Add each payload to the list
