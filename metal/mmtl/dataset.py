@@ -228,7 +228,9 @@ class GLUEDataset(data.Dataset):
             # Tokenize sentences
             tokenized_sentences = [tokenizer.tokenize(sent) for sent in sentence_list]
             sent1_tokens = tokenized_sentences[0]
-            sent2_tokens = tokenized_sentences[1] if len(tokenized_sentences) > 1
+            sent2_tokens = (
+                tokenized_sentences[1] if len(tokenized_sentences) > 1 else None
+            )
 
             # Truncate if necessary
             if len(sentence_list) == 1:
@@ -236,7 +238,10 @@ class GLUEDataset(data.Dataset):
                     tokenized_sentences[0] = tokenized_sentences[0][: max_len - 1]
             else:
                 # remove tokens from the longer sequence
-                while len(tokenized_sentences[0]) + len(tokenized_sentences[1]) > max_len - 2:
+                while (
+                    len(tokenized_sentences[0]) + len(tokenized_sentences[1])
+                    > max_len - 2
+                ):
                     if len(tokenized_sentences[0]) > len(tokenized_sentences[1]):
                         tokenized_sentences[0].pop()
                     else:
@@ -244,10 +249,10 @@ class GLUEDataset(data.Dataset):
 
             # Add markers
             tokenized_sentences[0] = ["CLS"] + tokenized_sentences[0]
-            if len(tokenized_sentences)
-            sent1_ids = tokenizer.convert_tokens_to_ids(
-                ["[CLS]"] + sent1_tokenized + ["[SEP]"]
-            )
+            if len(tokenized_sentences):
+                sent1_ids = tokenizer.convert_tokens_to_ids(
+                    ["[CLS]"] + sent1_tokenized + ["[SEP]"]
+                )
             if sent2_idx >= 0:
                 sent2_ids = tokenizer.convert_tokens_to_ids(sent2_tokenized + ["[SEP]"])
             else:
@@ -313,5 +318,5 @@ class GLUEDataset(data.Dataset):
             inv_label_fn,
             bert_vocab=None,
             tokenize_bert=True,
-            tokenize_spacy=True
+            tokenize_spacy=True,
         )

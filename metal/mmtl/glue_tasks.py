@@ -2,6 +2,7 @@ import copy
 
 import numpy as np
 import torch.nn as nn
+from auxiliary_tasks import add_bleu_labels
 
 from metal.contrib.modules.lstm_module import EmbeddingsEncoder, LSTMModule
 from metal.end_model import IdentityModule
@@ -120,6 +121,17 @@ def create_tasks_and_payloads(task_names, **kwargs):
     # creates task and appends to `tasks` list for each `task_name`
     task_list = []
     payload_list = []
+
+    # gets list of auxiliary tasks
+    auxiliary_tasks = kwargs.get("auxiliary_tasks")
+
+    # Getting unique subtask list
+    auxiliary_task_names = list(
+        set([item for sublist in list(auxiliary_tasks.values()) for item in sublist])
+    )
+
+    # Creating unified list of task names
+    task_names = list(set(task_names + auxiliary_task_names))
 
     for task_name in task_names:
 
@@ -249,11 +261,32 @@ def create_tasks_and_payloads(task_names, **kwargs):
                 scorer=Scorer(standard_metrics=["accuracy"]),
             )
 
+        elif task_name == "BLEU":
+            task = ClassificationTask(
+                name=task_name,
+                input_module=input_module,
+                middle_module=cls_middle_module,
+                attention_module=get_attention_module(config, neck_dim),
+                head_module=RegressionHead(neck_dim),
+                scorer=Scorer(custom_metric_funcs={mse: ["mse"]}),
+            )
+
+        # Append task to task list
         task_list.append(task)
+
+        # Create payloads and adding label sets
         for split, data_loader in data_loaders.items():
             payload_name = f"{task_name}_{split}"
             payload = Payload(payload_name, data_loader, [task_name], split)
+
+            # Add auxiliary task labels to payloads
+            if task_name in auxiliary_tasks.keys():
+                if "BLEU" in auxiliary_tasks[task_name]:
+                    add_bleu_labels(payload)
+
+            # Add each payload to the list
             payload_list.append(payload)
+
     return task_list, payload_list
 
 
